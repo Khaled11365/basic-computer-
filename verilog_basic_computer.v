@@ -1,14 +1,14 @@
 `timescale 1ns/1ps
 module Memory(
     input         clk,
-    input         we,
+    input         we,  // write enable signal
     input  [3:0]  addr,   
-    input  [7:0]  data_in,
-    output [7:0]  data_out
+    input  [7:0]  data_in, // data that will input to the memory
+    output [7:0]  data_out  // data that will output when the write enable was disabled
 );
-    reg [7:0] mem [0:15];
+    reg [7:0] mem [0:15];  // this is a declaration of memory array that we created in a txt file and it is name is mem
 
-    initial begin
+    initial begin     // for initialize the memory instructions and operands that stored in the txt file
         $readmemh("mem_data2.txt", mem);
         $display("Memory Loaded: mem[0]=%h, mem[1]=%h", mem[0], mem[1]);
     end
@@ -18,7 +18,7 @@ module Memory(
             mem[addr] <= data_in;
     end
 
-    assign data_out = mem[addr];
+    assign data_out = mem[addr];   //
 endmodule
 
 
@@ -51,14 +51,14 @@ module ControlUnit(
     output reg       halt,
     output reg [2:0] alu_op,
     output reg       mem_we,
-    output reg       update_pc,
-    output reg       update_ar,
+    output reg       update_pc, //   the increment signal of the pc that will update the pc
+    output reg       update_ar, //  the load signal of the address register that will make ar update it is value
     output reg       load_DR,
     output reg       load_AC
 );
     always @(posedge clk or posedge reset) begin
         if (reset)
-            SC <= 4'd0;
+            SC <= 4'd0; // 0000 in binary (4 bits wide).
         else
             SC <= SC + 1;
     end
@@ -69,22 +69,22 @@ module ControlUnit(
         update_pc = 0; update_ar = 0;
         load_DR = 0; load_AC = 0;
 
-        case (SC)
-            4'd0: update_ar = 1;
-            4'd1: update_pc = 1;
-            4'd2: begin update_ar = 1; alu_op = IR[6:4]; end
-            4'd3: begin
-                case (IR[6:4])
+        case (SC)    //        // Micro-operation sequence based on SC (T0–T4)
+            4'd0: update_ar = 1;     //  T0: Copy PC to AR
+            4'd1: update_pc = 1;     // T1: Load IR from memory and increment PC
+            4'd2: begin update_ar = 1; alu_op = IR[6:4]; end  // T2: Load address field from IR to AR
+            4'd3: begin        //   // T3: Depends on instruction type
+                case (IR[6:4])   //  // Extract opcode for ALU
                     3'b000, 3'b001, 3'b010: load_DR = 1;   // AND, ADD, LDA
                     3'b011: mem_we = 1;                    // STA
-                    3'b111: case (IR[3:0])
+                    3'b111: case (IR[3:0])  //   Register-reference instructions
                         4'b1000: begin load_AC = 1; alu_op = 3'b011; end // CLA
                         4'b0011: begin load_AC = 1; alu_op = 3'b010; end // INC as LDA + 1
                         4'b0111: halt = 1;                                  // HLT
                     endcase
                 endcase
             end
-            4'd4: if (IR[6:4] <= 3'b010) begin load_AC = 1; alu_op = IR[6:4]; end
+            4'd4: if (IR[6:4] <= 3'b010) begin load_AC = 1; alu_op = IR[6:4]; end  // T4: Execute memory-reference instructions
         endcase
     end
 endmodule
