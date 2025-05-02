@@ -1,98 +1,215 @@
-// ==================== Memory Module ====================
+`timescale 1ns/1ps
+
+///////////////////////////////////////////////////////////////
+// Module: Memory
+///////////////////////////////////////////////////////////////
 module Memory(
-    input [7:0] address,
-    input [15:0] data_in,
-    input write_enable,
-    output reg [15:0] data_out
+    input         clk,
+    input         we,
+    input  [3:0]  addr,
+    input  [7:0]  data_in,
+    output [7:0]  data_out
 );
-    reg [15:0] mem [0:255];
+    reg [7:0] mem [0:15];
 
     initial begin
-        $readmemh("C:\\Users\\aldawlia\\Downloads\\mem_data.txt", mem);
+        $readmemh("mem_data2.txt", mem);
+        $display("Memory Loaded: mem[0]=%h, mem[1]=%h", mem[0], mem[1]);
+    end
+
+    always @(posedge clk) begin
+        if (we)
+            mem[addr] <= data_in;
+    end
+
+    assign data_out = mem[addr];
+endmodule
+
+///////////////////////////////////////////////////////////////
+// Module: ALU
+///////////////////////////////////////////////////////////////
+module ALU(
+    input  [7:0] AC,
+    input  [7:0] DR,
+    input  [2:0] op,
+    output reg [7:0] result,
+    output reg       E_out
+);
+    always @(*) begin
+        case (op)
+            3'b000: begin result = AC & DR; E_out = 0; end  // AND
+            3'b001: {E_out, result} = AC + DR;              // ADD
+            3'b010: begin result = DR; E_out = 0; end       // LDA
+            3'b011: begin result = 8'b0; E_out = 0; end     // CLA
+            default: begin result = 8'b0; E_out = 0; end
+        endcase
+    end
+endmodule
+
+///////////////////////////////////////////////////////////////
+// Module: Control Unit
+///////////////////////////////////////////////////////////////
+module ControlUnit(
+    input        clk,
+    input        reset,
+    input  [7:0] IR,
+    output reg [3:0] SC,
+    output reg       halt,
+    output reg [2:0] alu_op,
+    output reg       mem_we,
+    output reg       update_pc,
+    output reg       update_ar,
+    output reg       load_DR,
+    output reg       load_AC
+);
+    always @(posedge clk or posedge reset) begin
+        if (reset)
+            SC <= 4'd0;
+        else
+            SC <= SC + 1;
     end
 
     always @(*) begin
-        data_out = mem[address];
-    end
+        // Default signals
+        halt = 0; alu_op = 0; mem_we = 0;
+        update_pc = 0; update_ar = 0;
+        load_DR = 0; load_AC = 0;
 
-    always @(posedge write_enable) begin
-        mem[address] <= data_in;
+        case (SC)
+            4'd0: update_ar = 1;
+            4'd1: update_pc = 1;
+            4'd2: begin update_ar = 1; alu_op = IR[6:4]; end
+            4'd3: begin
+                case (IR[6:4])
+                    3'b000, 3'b001, 3'b010: load_DR = 1;   // AND, ADD, LDA
+                    3'b011: mem_we = 1;                    // STA
+                    3'b111: case (IR[3:0])
+                        4'b1000: begin load_AC = 1; alu_op = 3'b011; end // CLA
+                        4'b0011: begin load_AC = 1; alu_op = 3'b010; end // INC as LDA + 1
+                        4'b0111: halt = 1;                                  // HLT
+                    endcase
+                endcase
+            end
+            4'd4: if (IR[6:4] <= 3'b010) begin load_AC = 1; alu_op = IR[6:4]; end
+        endcase
     end
 endmodule
 
-// ==================== Control Unit Module ====================
-module ControlUnit(
-    input clk,
-    output reg [3:0] timeCount
+///////////////////////////////////////////////////////////////
+// Module: IO Unit
+///////////////////////////////////////////////////////////////
+module IOUnit(
+    input  [7:0] INPR,
+    input  [7:0] AC,
+    input        io_sel,
+    output reg [7:0] OUTR
 );
-    initial timeCount = 0;
-
-    always @(posedge clk) begin
-        timeCount <= timeCount + 1;
+    always @(*) begin
+        OUTR = io_sel ? INPR : AC;
     end
 endmodule
 
-// ==================== Datapath Module ====================
-module Datapath(
-    input clk,
-    input [15:0] mem_data,
-    input [3:0] timeCount,
-    output reg [15:0] IR, TR, DR, AC,
-    output reg [11:0] PC, AR,
-    output reg I, E,
-    output reg halt
+///////////////////////////////////////////////////////////////
+// Module: Top-Level Basic Computer
+///////////////////////////////////////////////////////////////
+module BasicComputer_Top(
+    input         clk,
+    input         reset,
+    input  [7:0]  INPR,
+    output [7:0]  OUTR,
+    output [7:0]  AC,
+    output [7:0]  IR,
+    output [3:0]  PC,
+    output [3:0]  AR,
+    output        halt
 );
-    initial begin
-        IR = 0; TR = 0; DR = 0; AC = 0;
-        PC = 0; AR = 0;
-        I = 0; E = 0; halt = 0;
-    end
+    reg [7:0] reg_IR = 0, reg_DR = 0, reg_AC = 0;
+    reg [3:0] reg_PC = 0, reg_AR = 0;
 
-    always @(posedge clk) begin
-        if (halt) begin
-            // halted
-        end else if (timeCount == 0) begin
-            AR <= PC;
-        end else if (timeCount == 1) begin
-            IR <= mem_data;
-            PC <= PC + 1;
-        end else if (timeCount == 2) begin
-            AR <= IR[11:0];
-            I <= IR[15];
+    wire [7:0] mem_data_out, alu_result;
+    wire [2:0] alu_op;
+    wire       mem_we, update_pc, update_ar;
+    wire       load_DR, load_AC, ctrl_halt;
+    wire [3:0] SC;
+    wire       E_out;
+
+    Memory mem_inst(
+        .clk(clk), .we(mem_we), .addr(reg_AR),
+        .data_in(reg_AC), .data_out(mem_data_out)
+    );
+
+    ALU alu_inst(
+        .AC(reg_AC), .DR(reg_DR), .op(alu_op),
+        .result(alu_result), .E_out(E_out)
+    );
+
+    ControlUnit ctrl_inst(
+        .clk(clk), .reset(reset), .IR(reg_IR), .SC(SC),
+        .halt(ctrl_halt), .alu_op(alu_op), .mem_we(mem_we),
+        .update_pc(update_pc), .update_ar(update_ar),
+        .load_DR(load_DR), .load_AC(load_AC)
+    );
+
+    IOUnit io_inst(
+        .INPR(INPR), .AC(reg_AC), .io_sel(1'b0), .OUTR(OUTR)
+    );
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            reg_PC <= 0; reg_IR <= 0; reg_DR <= 0;
+            reg_AC <= 0; reg_AR <= 0;
+        end else begin
+            case (SC)
+                4'd0: if (update_ar) reg_AR <= reg_PC;
+                4'd1: if (update_pc) begin reg_IR <= mem_data_out; reg_PC <= reg_PC + 1; end
+                4'd2: if (update_ar) reg_AR <= reg_IR[3:0];
+                4'd3: begin
+                    if (load_DR) reg_DR <= mem_data_out;
+                    else if (reg_IR == 8'hF8) reg_AC <= INPR;
+                    else if (reg_IR[6:4] == 3'b111 && reg_IR[3:0] == 4'b0011)
+                        reg_AC <= reg_AC + 1;
+                end
+                4'd4: if (load_AC) reg_AC <= alu_result;
+            endcase
         end
-        // ... add rest of control logic from your behavioral model here
+    end
+
+    assign AC = reg_AC;
+    assign IR = reg_IR;
+    assign PC = reg_PC;
+    assign AR = reg_AR;
+    assign halt = ctrl_halt;
+
+    always @(posedge clk) begin
+        $display("[Time=%0t] SC=%d IR=%h PC=%d AR=%d AC=%h DR=%h ALU_OP=%b HALT=%b",
+            $time, SC, reg_IR, reg_PC, reg_AR, reg_AC, reg_DR, alu_op, ctrl_halt);
     end
 endmodule
 
-// ==================== Top-Level Module ====================
-module BasicComputer(
-    output [15:0] IR, TR, DR, AC,
-    output [11:0] PC, AR,
-    input clk,
-    output [3:0] timeCount
-);
+///////////////////////////////////////////////////////////////
+// Module: Testbench
+///////////////////////////////////////////////////////////////
+module tb_BasicComputer;
+    reg clk = 0, reset;
+    reg [7:0] INPR;
+    wire [7:0] OUTR, AC, IR;
+    wire [3:0] PC, AR;
+    wire       halt;
 
-    wire [15:0] mem_out;
-    wire [7:0] mem_address;
-    wire mem_write_enable;
-    wire [15:0] mem_data_in;
-    wire I, E, halt;
-
-    ControlUnit CU(clk, timeCount);
-
-    Memory MEM(
-        .address(AR[7:0]),
-        .data_in(mem_data_in),
-        .write_enable(mem_write_enable),
-        .data_out(mem_out)
+    BasicComputer_Top DUT(
+        .clk(clk), .reset(reset), .INPR(INPR),
+        .OUTR(OUTR), .AC(AC), .IR(IR), .PC(PC), .AR(AR), .halt(halt)
     );
 
-    Datapath DP(
-        .clk(clk),
-        .mem_data(mem_out),
-        .timeCount(timeCount),
-        .IR(IR), .TR(TR), .DR(DR), .AC(AC),
-        .PC(PC), .AR(AR),
-        .I(I), .E(E), .halt(halt)
-    );
+    always #2.5 clk = ~clk;
+
+    initial begin
+        $display("=== Simulation Start ===");
+        $readmemh("mem_data2.txt", DUT.mem_inst.mem);
+        INPR = 8'h0F;
+        reset = 1; #10; reset = 0;
+        #1000;
+        $display("=== Simulation End ===");
+        $stop;
+    end
 endmodule
