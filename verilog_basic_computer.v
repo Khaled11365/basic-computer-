@@ -1,18 +1,14 @@
 `timescale 1ns/1ps
-
-///////////////////////////////////////////////////////////////
-// Module: Memory
-///////////////////////////////////////////////////////////////
 module Memory(
     input         clk,
-    input         we,   //  write enable signal 
-    input  [3:0]  addr, // scaled sized of address register 
-    input  [7:0]  data_in, // scaled size from the what real done in mano's project of the data transfering 
+    input         we,
+    input  [3:0]  addr,   
+    input  [7:0]  data_in,
     output [7:0]  data_out
 );
-    reg [7:0] mem [0:15]; // declaring a memory array named mem and we storing the instructions and operand inside it 
+    reg [7:0] mem [0:15];
 
-    initial begin  // initialization of that we need to read the data from the memory array that we created in txt file
+    initial begin
         $readmemh("mem_data2.txt", mem);
         $display("Memory Loaded: mem[0]=%h, mem[1]=%h", mem[0], mem[1]);
     end
@@ -25,9 +21,9 @@ module Memory(
     assign data_out = mem[addr];
 endmodule
 
-///////////////////////////////////////////////////////////////
+
 // Module: ALU
-///////////////////////////////////////////////////////////////
+
 module ALU(
     input  [7:0] AC,
     input  [7:0] DR,
@@ -46,9 +42,7 @@ module ALU(
     end
 endmodule
 
-///////////////////////////////////////////////////////////////
 // Module: Control Unit
-///////////////////////////////////////////////////////////////
 module ControlUnit(
     input        clk,
     input        reset,
@@ -70,7 +64,7 @@ module ControlUnit(
     end
 
     always @(*) begin
-        // Default signals
+      
         halt = 0; alu_op = 0; mem_we = 0;
         update_pc = 0; update_ar = 0;
         load_DR = 0; load_AC = 0;
@@ -95,9 +89,8 @@ module ControlUnit(
     end
 endmodule
 
-///////////////////////////////////////////////////////////////
+
 // Module: IO Unit
-///////////////////////////////////////////////////////////////
 module IOUnit(
     input  [7:0] INPR,
     input  [7:0] AC,
@@ -183,5 +176,5 @@ module BasicComputer_Top(
     always @(posedge clk) begin
         $display("[Time=%0t] SC=%d IR=%h PC=%d AR=%d AC=%h DR=%h ALU_OP=%b HALT=%b",
             $time, SC, reg_IR, reg_PC, reg_AR, reg_AC, reg_DR, alu_op, ctrl_halt);
-    end
+    end
 endmodule
