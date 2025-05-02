@@ -9,7 +9,7 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 ##  Architecture Features
 
 - **16-bit Word Length**
-- **12-bit Address Bus** (4K words of memory)
+- **12-bit Address Bus** (4K words of memory)  // this is in general but in the verilog code for simplicity of the simulation we scaled the size of registers 
 - **Registers:** AC, DR, IR, TR, AR, PC, INPR, OUTR
 - **Memory:** 4096x16-bit, initialized from external file
 - **ALU Operations:** AND, ADD, LDA, CLA, etc.
