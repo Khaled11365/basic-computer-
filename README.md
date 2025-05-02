@@ -9,11 +9,14 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 ##  Architecture Features
 
 - **16-bit Word Length**
-- **12-bit Address Bus** (4K words of memory)  // this is in general but in the verilog code for simplicity of the simulation we scaled the size of registers 
-- **Registers:** AC, DR, IR, TR, AR, PC, INPR, OUTR
+- **12-bit Address Bus** (4K words of memory)  // this is in mano's basic computer specifications, but in the verilog code for simplicity of the simulation we scaled the size of registers
+
+
+- **internal Registers:** AC, DR, IR, TR, AR, PC, INPR, OUTR
 - **Memory:** 4096x16-bit, initialized from external file
 - **ALU Operations:** AND, ADD, LDA, CLA, etc.
-- **sequence counter:** Implements micro-operations T0–T6
+- **sequence counter:** Implements micro-operations T0–T15   // the maximum size for instruction is 15 but this also in mano's specifications and we scale this and reduce it for simplicity
+- 
 - **Instruction Set:**
   - Memory-Reference Instructions (AND, ADD, LDA, STA, BUN, etc.)
   - Register-Reference Instructions (CLA, INC, HLT, etc.)
