@@ -27,7 +27,7 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 
 
 
-
+================================================================================
 
    0:4  => presentation about the project
 
@@ -37,7 +37,7 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 
    12:19 : end of the video   => verilog simulation and overview
 
-
+=================================================================================
 
    team members : رقم الكشف\الاسم
 
@@ -106,4 +106,4 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 
 
 
- (116) منار جمال فرغل
+ (116) منار جمال فرغل 
