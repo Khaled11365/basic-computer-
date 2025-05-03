@@ -59,7 +59,7 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
   
   
   
-(24) امير عصام سالم
+  (24) امير عصام سالم
 
 
 
@@ -72,7 +72,7 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 
 
 
-(6) احمد رفعت الغتوري 
+  (6) احمد رفعت الغتوري 
 
 
 
@@ -86,7 +86,7 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 
 
 
-(52) سلمي احمد مصطفي
+  (52) سلمي احمد مصطفي
 
 
 
