@@ -106,7 +106,4 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 
 
 
-
-
-
  (116) منار جمال فرغل
