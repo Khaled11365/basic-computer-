@@ -25,12 +25,9 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 - it also based on a cructial concept which is the timing and control structure which means that each microoperation has it is corresponding execuation
 - the link of the video https://drive.google.com/file/d/1fRkIO8felcxEaqPWjACFy9cQKGDL5XA_/view?usp=sharing
    team members :
-  خالد اسامة عصر 39 رقم
-  حاتم سويلم غازي   32رقم
-  امير عصام سالم       24 رقم
-  احمد رفعت الغتوري      6 رقم
-  منار جمال فرغل         116 رقم
-  سلمي السيد مصطفي     52  رقم
-  
-
-
+  خالد  عصر
+  حاتم غازي
+  امير سالم
+  احمد رفعت
+  منار جمال
+  سلمي مصطفي
