@@ -36,6 +36,77 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 
 
    12:19 : end of the video   => verilog simulation and overview
-   
+
+
+
+   team members : رقم الكشف\الاسم
+
+
+  (39) خالد اسامة عصر
+
+
+
+
+
+
+  (32) حاتم حسام غازي
+
+
+
+
+
+
   
   
+  
+(24) امير عصام سالم
+
+
+
+
+
+
+
+
+
+
+
+
+(6) احمد رفعت الغتوري 
+
+
+
+
+
+
+
+
+
+
+
+
+
+(52) سلمي احمد مصطفي
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(116) منار جمال فرغل
