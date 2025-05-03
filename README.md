@@ -25,7 +25,11 @@ This project is a Verilog-based hardware implementation of the **Basic Computer*
 - it also based on a cructial concept which is the timing and control structure which means that each microoperation has it is corresponding execuation
 - the link of the video https://drive.google.com/file/d/1fRkIO8felcxEaqPWjACFy9cQKGDL5XA_/view?usp=sharing
    0:4  => presentation about the project
+
+  
    4:07 : 12:19 => proteus simulation and overview
+
+
    12:19 : end of the video   => verilog simulation and overview
    
   
